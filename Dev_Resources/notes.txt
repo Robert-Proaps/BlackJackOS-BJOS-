@@ -1,0 +1,11 @@
+Library Sources
+
+Ace Button, https://github.com/bxparks/AceButton, Handles buttonpresses
+Arduino GFX, https://github.com/moononournation/Arduino_GFX, Graphics Library
+ESP32_audioI2s, https://github.com/schreibfaul1/ESP32-audioI2S, Audio MP3 Library
+RadioLib, https://github.com/jgromes/RadioLib, Universal Wireless Communication
+SensorsLib, https://github.com/Xinyuan-LilyGO/T-Deck/tree/master/lib/SensorsLib, I2C Sensors
+TFT_eSPI, https://github.com/Bodmer/TFT_eSPI, Screen
+TinyGPSPlus, https://github.com/mikalhart/TinyGPSPlus, GPS
+TouchLib, https://github.com/admarschoonen/TouchLib, Generic Touch Pad
+LVGL, https://github.com/lvgl/lvgl, Graphics Library
