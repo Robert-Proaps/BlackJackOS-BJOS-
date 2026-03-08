@@ -9,3 +9,14 @@ TFT_eSPI, https://github.com/Bodmer/TFT_eSPI, Screen
 TinyGPSPlus, https://github.com/mikalhart/TinyGPSPlus, GPS
 TouchLib, https://github.com/admarschoonen/TouchLib, Generic Touch Pad
 LVGL, https://github.com/lvgl/lvgl, Graphics Library
+
+3/4/2026---------------------------------------------------------------------------------------
+Using the ESP32 Board Group by Espressif Systems in the Arduino ide at 2.0.14 and board "ESP32S3 Dev Module" This board group can be found here...
+https://github.com/espressif/arduino-esp32
+Whgen defining the board change USB CDC on Boot to Enabled, set flash size to 16MB (128Mb), set partition scheme to "16m flash (3MB app)",set PSRAM to OPI PSREAM, 
+
+3/8/2026------------------------------------------------------------------------------------------
+Main firmware development begun,
+BMP splashscreen created
+Reg-Green Colors are backwards.
+Part of screen is buggy
