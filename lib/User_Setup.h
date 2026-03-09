@@ -11,8 +11,8 @@
 #define TFT_RGB_ORDER TFT_BGR  // Colour order Red-Green-Blue
 
 // Display resolution (T-Deck is 320x240 in portrait)
-#define TFT_WIDTH  320
-#define TFT_HEIGHT 240
+#define TFT_WIDTH  240
+#define TFT_HEIGHT 320
 
 // ##################################################################################
 // Section 2. Pin Configuration for ESP32-S3

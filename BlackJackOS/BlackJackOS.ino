@@ -38,7 +38,6 @@ TFT_eSPI tft; //TFT LCD Object
 
 void setup() {
   Serial.begin(115200);
-  delay(100);
   systemStartup();
 
 
@@ -96,10 +95,11 @@ void systemStartup() {
   tft.setRotation(1);
   pinMode(BOARD_BL_PIN, OUTPUT);
   setBrightness(8);
+  delay(30);//Might be critical delay
 
   Serial.println("Startup Complete!");
   //Show Splashscreen
-  tft.fillScreen(TFT_RED);
+  tft.fillScreen(TFT_BLUE);
   delay(100);
   tft.pushImage(0, 0, SPLASH_WIDTH, SPLASH_HEIGHT, (const uint16_t*)BJOS_Splashscreen_img);
 }
