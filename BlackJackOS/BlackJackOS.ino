@@ -2,8 +2,10 @@
 #include <Arduino.h>
 #include <SPI.h>
 #include <TFT_eSPI.h>
+#include <RadioLib.h>
 #include "utilities.h"
 #include "BJOS_SplashscreenBGR565.h"
+
 
 //ST7789 LCD Controller SPI Command Table
 typedef struct {
@@ -35,6 +37,30 @@ lcd_cmd_t lcd_st7789v[] = {
 };
 
 TFT_eSPI tft;  //TFT LCD Object
+
+//Lora and Meshcore Info for Radio Setup
+struct LoRa_Config {
+    float       frequency;      //MHz
+    float       bandwidth;      //kHz
+    uint8_t     sf;             //Spreading Factor
+    uint8_t     cr;             //Coding Rate Denominator (4/cr)
+    uint8_t     syncWord;       
+    int8_t      txPower;        //dBm
+    uint16_t    preambleLen;
+};
+
+//MeshCore US/Canada Preset
+const LoRa_Config MESHCORE_US = {
+    .frequency      =   910.525,
+    .bandwidth      =   62.5,
+    .sf             =   7,
+    .cr             =   5,
+    .syncWord       =   0x2B,
+    .txPower        =   17,
+    .preambleLen    =   8
+};
+
+SX1262 LoRaRadio = new Module(RADIO_CS_PIN, RADIO_DIO1_PIN, RADIO_RST_PIN, RADIO_BUSY_PIN); //LoRa Radio Objuect
 
 void setup() {
   Serial.begin(115200);
@@ -92,12 +118,35 @@ void systemStartup() {
   pinMode(BOARD_BL_PIN, OUTPUT);
   setBrightness(8);
 
-
-  Serial.println("Startup Complete!");
   //Show Splashscreen
   tft.fillScreen(TFT_BLUE);
   delay(1000);
   tft.pushImage(0, 0, SPLASH_WIDTH, SPLASH_HEIGHT, (const uint16_t*)BJOS_SplashscreenBGR_img);
+
+  // Re-init SPI after display — tft.begin() may have reconfigured the bus
+  digitalWrite(BOARD_SDCARD_CS, HIGH);
+  digitalWrite(RADIO_CS_PIN, HIGH);
+  digitalWrite(BOARD_TFT_CS, HIGH);
+  // TFT_eSPI reconfigures SPI internally during tft.begin() and display ops.
+  // Full SPI reset required before radio init to ensure clean bus state.
+  SPI.end();
+  delay(10);
+  SPI.begin(BOARD_SPI_SCK, BOARD_SPI_MISO, BOARD_SPI_MOSI);
+  delay(100);
+
+  //Setup LoRa Radio
+  int radioState = LoRaRadio.begin(MESHCORE_US.frequency, MESHCORE_US.bandwidth, MESHCORE_US.sf, MESHCORE_US.cr, MESHCORE_US.syncWord, MESHCORE_US.txPower, MESHCORE_US.preambleLen);
+  if (radioState != RADIOLIB_ERR_NONE) {
+    Serial.print("Radio initialization failure: ");
+    Serial.println(radioState);
+    Serial.println("Halting");
+    while(true);
+  }
+
+  Serial.println("Radio Initialized.");
+  
+  
+  Serial.println("Startup Complete!");
 }
 
 // LCD Backlight Control
