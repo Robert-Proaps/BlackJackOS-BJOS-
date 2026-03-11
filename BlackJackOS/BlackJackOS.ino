@@ -60,16 +60,25 @@ const LoRa_Config MESHCORE_US = {
     .preambleLen    =   8
 };
 
+// LoRa Radio Object
+// IMPORTANT: RadioLib must use the HSPI bus via an explicit SPIClass instance (hspi).
+// TFT_eSPI claims HSPI internally via USE_HSPI_PORT in User_Setup.h.
+// Passing the default SPI object here will target FSPI, putting the radio on a different
+// peripheral than the display despite sharing the same physical pins, causing init failure.
+// Both devices must reference the same SPIClass instance (hspi) to share the bus correctly.
+
 SPIClass hspi(HSPI);
 SX1262 LoRaRadio = new Module(RADIO_CS_PIN, RADIO_DIO1_PIN, RADIO_RST_PIN, RADIO_BUSY_PIN, hspi, SPISettings(2000000, MSBFIRST, SPI_MODE0)); //LoRa Radio Objuect
 
 void setup() {
-  Serial.begin(115200);
-  systemStartup();
+  Serial.begin(115200); //Open A Serial Port
+  systemStartup();  //Initialize the System
 }
 
 void loop() {
   // put your main code here, to run repeatedly:
+
+  //Currently Loop is just a test to ensure the radio and lcd work cooperatively.
   // --- Display Test ---
   tft.fillScreen(TFT_BLACK);
   tft.setTextColor(TFT_WHITE);
@@ -102,6 +111,7 @@ void loop() {
 void systemStartup() {
   //This function should run once in the setup function.
   Serial.println("System Starting Up");
+
   //Turn on the power rails to all board perephreals, including LCD, Touchscreen, SD Card, LoRa, and Trackball.
   Serial.println("Powering On-Board Periphreals");
   pinMode(BOARD_POWERON, OUTPUT);
@@ -124,15 +134,7 @@ void systemStartup() {
 
   //Initialize the screen and turn on the backlight.
   Serial.println("Screen Initializing.");
-
-  Serial.print("TFT_MOSI: "); Serial.println(TFT_MOSI);
-Serial.print("TFT_SCLK: "); Serial.println(TFT_SCLK);
-Serial.print("TFT_CS: ");   Serial.println(TFT_CS);
-Serial.print("TFT_DC: ");   Serial.println(TFT_DC);
-
   tft.begin();
-
-  
 
 #if 0
     for (uint8_t i = 0; i < (sizeof(lcd_st7789v) / sizeof(lcd_cmd_t)); i++) {
@@ -148,23 +150,16 @@ Serial.print("TFT_DC: ");   Serial.println(TFT_DC);
 #endif
 
   tft.setRotation(1);
-
   Serial.println("TFT begun");
-tft.fillScreen(TFT_RED);
-delay(500);
-tft.fillScreen(TFT_GREEN);
-delay(500);
-tft.fillScreen(TFT_BLUE);
 
-  pinMode(BOARD_BL_PIN, OUTPUT);
+  pinMode(BOARD_BL_PIN, OUTPUT);  //Turn on the LCD backlight at brightness 8.
   setBrightness(8);
 
   //Show Splashscreen
-  tft.fillScreen(TFT_BLUE);
-  delay(1000);
+  delay(500);
   tft.pushImage(0, 0, SPLASH_WIDTH, SPLASH_HEIGHT, (const uint16_t*)BJOS_SplashscreenBGR_img);
 
-  // Re-init SPI after display — tft.begin() may have reconfigured the bus
+  // Reassert SPI CS Lines
   digitalWrite(BOARD_SDCARD_CS, HIGH);
   digitalWrite(RADIO_CS_PIN, HIGH);
   digitalWrite(BOARD_TFT_CS, HIGH);
