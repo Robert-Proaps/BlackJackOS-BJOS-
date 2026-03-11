@@ -60,7 +60,8 @@ const LoRa_Config MESHCORE_US = {
     .preambleLen    =   8
 };
 
-SX1262 LoRaRadio = new Module(RADIO_CS_PIN, RADIO_DIO1_PIN, RADIO_RST_PIN, RADIO_BUSY_PIN); //LoRa Radio Objuect
+SPIClass hspi(HSPI);
+SX1262 LoRaRadio = new Module(RADIO_CS_PIN, RADIO_DIO1_PIN, RADIO_RST_PIN, RADIO_BUSY_PIN, hspi, SPISettings(2000000, MSBFIRST, SPI_MODE0)); //LoRa Radio Objuect
 
 void setup() {
   Serial.begin(115200);
@@ -69,6 +70,30 @@ void setup() {
 
 void loop() {
   // put your main code here, to run repeatedly:
+  // --- Display Test ---
+  tft.fillScreen(TFT_BLACK);
+  tft.setTextColor(TFT_WHITE);
+  tft.setTextSize(2);
+  tft.setCursor(10, 10);
+  tft.println("Display: OK");
+
+  // --- Radio Test ---
+  int radioState = LoRaRadio.transmit("BJOS Test Packet");
+  
+  tft.setCursor(10, 40);
+  if (radioState == RADIOLIB_ERR_NONE) {
+    tft.setTextColor(TFT_GREEN);
+    tft.println("Radio TX: OK");
+    Serial.println("Radio TX: OK");
+  } else {
+    tft.setTextColor(TFT_RED);
+    tft.print("Radio TX FAIL: ");
+    tft.println(radioState);
+    Serial.print("Radio TX FAIL: ");
+    Serial.println(radioState);
+  }
+
+  delay(3000);
 }
 
 //Functions
@@ -95,11 +120,19 @@ void systemStartup() {
   //Define SPI Bus.
   Serial.println("Defining SPI Bus.");
   pinMode(BOARD_SPI_MISO, INPUT_PULLUP);
-  SPI.begin(BOARD_SPI_SCK, BOARD_SPI_MISO, BOARD_SPI_MOSI);
+  hspi.begin(BOARD_SPI_SCK, BOARD_SPI_MISO, BOARD_SPI_MOSI);
 
   //Initialize the screen and turn on the backlight.
   Serial.println("Screen Initializing.");
+
+  Serial.print("TFT_MOSI: "); Serial.println(TFT_MOSI);
+Serial.print("TFT_SCLK: "); Serial.println(TFT_SCLK);
+Serial.print("TFT_CS: ");   Serial.println(TFT_CS);
+Serial.print("TFT_DC: ");   Serial.println(TFT_DC);
+
   tft.begin();
+
+  
 
 #if 0
     for (uint8_t i = 0; i < (sizeof(lcd_st7789v) / sizeof(lcd_cmd_t)); i++) {
@@ -115,6 +148,14 @@ void systemStartup() {
 #endif
 
   tft.setRotation(1);
+
+  Serial.println("TFT begun");
+tft.fillScreen(TFT_RED);
+delay(500);
+tft.fillScreen(TFT_GREEN);
+delay(500);
+tft.fillScreen(TFT_BLUE);
+
   pinMode(BOARD_BL_PIN, OUTPUT);
   setBrightness(8);
 
@@ -127,12 +168,6 @@ void systemStartup() {
   digitalWrite(BOARD_SDCARD_CS, HIGH);
   digitalWrite(RADIO_CS_PIN, HIGH);
   digitalWrite(BOARD_TFT_CS, HIGH);
-  // TFT_eSPI reconfigures SPI internally during tft.begin() and display ops.
-  // Full SPI reset required before radio init to ensure clean bus state.
-  SPI.end();
-  delay(10);
-  SPI.begin(BOARD_SPI_SCK, BOARD_SPI_MISO, BOARD_SPI_MOSI);
-  delay(100);
 
   //Setup LoRa Radio
   int radioState = LoRaRadio.begin(MESHCORE_US.frequency, MESHCORE_US.bandwidth, MESHCORE_US.sf, MESHCORE_US.cr, MESHCORE_US.syncWord, MESHCORE_US.txPower, MESHCORE_US.preambleLen);

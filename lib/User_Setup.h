@@ -31,8 +31,8 @@
 // Section 3. SPI Frequency Configuration
 // ##################################################################################
 
-#define SPI_FREQUENCY  40000000  // 40 MHz for ST7789
-#define SPI_READ_FREQUENCY  20000000
+#define SPI_FREQUENCY  20000000  // 40 MHz for ST7789
+#define SPI_READ_FREQUENCY  8000000
 #define SPI_TOUCH_FREQUENCY  2500000
 
 // Use HSPI port for ESP32-S3
