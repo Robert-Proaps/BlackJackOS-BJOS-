@@ -20,3 +20,5 @@ Main firmware development begun,
 BMP splashscreen created
 Reg-Green Colors are backwards.
 Part of screen is buggy
+3/11/2026------------------------------------------------------------------------------------------
+SPI communications are problematic, initializing any device corrupts the other one.
