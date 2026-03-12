@@ -5,6 +5,7 @@
 #include <RadioLib.h>
 #include "utilities.h"
 #include "BJOS_SplashscreenBGR565.h"
+#include "Cursor.h"
 
 
 //ST7789 LCD Controller SPI Command Table
@@ -70,6 +71,9 @@ const LoRa_Config MESHCORE_US = {
 SPIClass hspi(HSPI);
 SX1262 LoRaRadio = new Module(RADIO_CS_PIN, RADIO_DIO1_PIN, RADIO_RST_PIN, RADIO_BUSY_PIN, hspi, SPISettings(2000000, MSBFIRST, SPI_MODE0)); //LoRa Radio Objuect
 
+//Cursor Object
+Cursor cursor(tft, TFT_WHITE, TFT_BLACK);
+
 void setup() {
   Serial.begin(115200); //Open A Serial Port
   systemStartup();  //Initialize the System
@@ -77,32 +81,7 @@ void setup() {
 
 void loop() {
   // put your main code here, to run repeatedly:
-
-  //Currently Loop is just a test to ensure the radio and lcd work cooperatively.
-  // --- Display Test ---
-  tft.fillScreen(TFT_BLACK);
-  tft.setTextColor(TFT_WHITE);
-  tft.setTextSize(2);
-  tft.setCursor(10, 10);
-  tft.println("Display: OK");
-
-  // --- Radio Test ---
-  int radioState = LoRaRadio.transmit("BJOS Test Packet");
-  
-  tft.setCursor(10, 40);
-  if (radioState == RADIOLIB_ERR_NONE) {
-    tft.setTextColor(TFT_GREEN);
-    tft.println("Radio TX: OK");
-    Serial.println("Radio TX: OK");
-  } else {
-    tft.setTextColor(TFT_RED);
-    tft.print("Radio TX FAIL: ");
-    tft.println(radioState);
-    Serial.print("Radio TX FAIL: ");
-    Serial.println(radioState);
-  }
-
-  delay(3000);
+  cursor.update();
 }
 
 //Functions
@@ -175,7 +154,11 @@ void systemStartup() {
 
   Serial.println("Radio Initialized.");
   
-  
+  //Initialize the Cursor Routine
+  Serial.println("Initializing Cursor Subsystem.");
+  cursor.begin();
+  cursor.draw();
+
   Serial.println("Startup Complete!");
 }
 
