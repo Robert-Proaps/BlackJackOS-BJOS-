@@ -7,6 +7,10 @@
 #include "utilities.h"
 #include "BJOS_SplashscreenBGR565.h"
 #include "LVGLDriver.h"
+#include "AppManager.h"
+#include "HomeMenu.h"
+#include "TemplateApp.h"
+#include "TouchDriver.h"
 
 
 //ST7789 LCD Controller SPI Command Table
@@ -71,6 +75,10 @@ const LoRa_Config MESHCORE_US = {
 
 SPIClass hspi(HSPI);
 SX1262 LoRaRadio = new Module(RADIO_CS_PIN, RADIO_DIO1_PIN, RADIO_RST_PIN, RADIO_BUSY_PIN, hspi, SPISettings(2000000, MSBFIRST, SPI_MODE0)); //LoRa Radio Objuect
+
+//Forward Declarations
+void systemStartup();
+void setBrightness(uint8_t value);
 
 void setup() {
   Serial.begin(115200); //Open A Serial Port
@@ -160,6 +168,8 @@ void systemStartup() {
   tft.setAddrWindow(0, 0, tft.width(), tft.height()); // explicit full-screen window
   lvgl_driver_init(tft);
 
+  touch_driver_init();  //Initialize Touch Driver
+/*
   Serial.print("LVGL display size: ");
   Serial.print(lv_display_get_horizontal_resolution(lv_display_get_default()));
   Serial.print(" x ");
@@ -173,6 +183,12 @@ void systemStartup() {
   lv_obj_set_style_text_color(label, lv_color_hex(0xFF0000), LV_PART_MAIN);
   lv_obj_center(label);
   lv_obj_invalidate(lv_scr_act());
+*/
+  // Build and launch the home menu
+  HomeMenu* home = new HomeMenu();
+  home->addTile("Demo",     LV_SYMBOL_PLAY,     []{ AppManager::instance().launch(new TemplateApp()); });
+  // home->addTile("Radio", LV_SYMBOL_WIFI,     []{ AppManager::instance().launch(new RadioApp()); });
+  AppManager::instance().setHome(home);
 
   Serial.println("Startup Complete!");
 }
