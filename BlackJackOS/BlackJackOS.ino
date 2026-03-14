@@ -3,9 +3,10 @@
 #include <SPI.h>
 #include <TFT_eSPI.h>
 #include <RadioLib.h>
+#include <lvgl.h>
 #include "utilities.h"
 #include "BJOS_SplashscreenBGR565.h"
-#include "Cursor.h"
+#include "LVGLDriver.h"
 
 
 //ST7789 LCD Controller SPI Command Table
@@ -71,9 +72,6 @@ const LoRa_Config MESHCORE_US = {
 SPIClass hspi(HSPI);
 SX1262 LoRaRadio = new Module(RADIO_CS_PIN, RADIO_DIO1_PIN, RADIO_RST_PIN, RADIO_BUSY_PIN, hspi, SPISettings(2000000, MSBFIRST, SPI_MODE0)); //LoRa Radio Objuect
 
-//Cursor Object
-Cursor cursor(tft, TFT_WHITE, TFT_BLACK);
-
 void setup() {
   Serial.begin(115200); //Open A Serial Port
   systemStartup();  //Initialize the System
@@ -81,7 +79,8 @@ void setup() {
 
 void loop() {
   // put your main code here, to run repeatedly:
-  cursor.update();
+  lv_timer_handler();
+  delay(5);
 }
 
 //Functions
@@ -137,6 +136,7 @@ void systemStartup() {
   //Show Splashscreen
   delay(500);
   tft.pushImage(0, 0, SPLASH_WIDTH, SPLASH_HEIGHT, (const uint16_t*)BJOS_SplashscreenBGR_img);
+  delay(1500);
 
   // Reassert SPI CS Lines
   digitalWrite(BOARD_SDCARD_CS, HIGH);
@@ -154,10 +154,25 @@ void systemStartup() {
 
   Serial.println("Radio Initialized.");
   
-  //Initialize the Cursor Routine
-  Serial.println("Initializing Cursor Subsystem.");
-  cursor.begin();
-  cursor.draw();
+  //Initialize LVGL
+  Serial.println("Initializing LVGL");
+  tft.fillScreen(TFT_BLACK);          // reset GRAM & address pointer
+  tft.setAddrWindow(0, 0, tft.width(), tft.height()); // explicit full-screen window
+  lvgl_driver_init(tft);
+
+  Serial.print("LVGL display size: ");
+  Serial.print(lv_display_get_horizontal_resolution(lv_display_get_default()));
+  Serial.print(" x ");
+  Serial.println(lv_display_get_vertical_resolution(lv_display_get_default()));
+
+  //Temporary-----Test lvgl with a color.
+  lv_obj_set_style_bg_color(lv_scr_act(), lv_color_hex(0x1a1a2e), LV_PART_MAIN);
+  lv_obj_set_style_bg_opa(lv_scr_act(), LV_OPA_COVER, LV_PART_MAIN);
+  lv_obj_t *label = lv_label_create(lv_scr_act());
+  lv_label_set_text(label, "TEST");
+  lv_obj_set_style_text_color(label, lv_color_hex(0xFF0000), LV_PART_MAIN);
+  lv_obj_center(label);
+  lv_obj_invalidate(lv_scr_act());
 
   Serial.println("Startup Complete!");
 }
