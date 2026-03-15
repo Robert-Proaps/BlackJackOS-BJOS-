@@ -47,14 +47,26 @@ namespace _touch_drv {
     // Since the T-Deck has no dedicated RST pin we use the INT pin,
     // then release it back to input so the chip can drive it again.
     static void _hw_reset() {
-        Serial.println("[Touch] Resetting GT911...");
+            // Step 1 — drive INT low FIRST to select address 0x5D (or high for 0x14)
         pinMode(BOARD_TOUCH_INT, OUTPUT);
+        digitalWrite(BOARD_TOUCH_INT, LOW);   // hold INT low = selects 0x5D
+        delay(5);
+
+    // Step 2 — assert RST low (via INT since no dedicated RST pin)
+    // On T-Deck this is the same pin, which is the core constraint you're working around
+    // You need to assert RST through whatever mechanism you have
+    // If INT is your only lever, this sequence is the closest you can get:
         digitalWrite(BOARD_TOUCH_INT, LOW);
         delay(10);
+
+    // Step 3 — release RST (bring high), keep INT low during address latch window
         digitalWrite(BOARD_TOUCH_INT, HIGH);
-        delay(10);
+        delayMicroseconds(110);   // GT911 latches address within 100us of RST rising edge
+                               // INT must be stable during this window
+
+    // Step 4 — release INT to input AFTER the latch window
         pinMode(BOARD_TOUCH_INT, INPUT_PULLUP);
-        delay(50);  // allow GT911 to finish startup
+        delay(50);
         _touch.begin();
         _prev_raw_x = -1;
         _prev_raw_y = -1;
@@ -122,7 +134,6 @@ namespace _touch_drv {
 inline void touch_driver_init() {
     using namespace _touch_drv;
 
-    Wire.begin(BOARD_I2C_SDA, BOARD_I2C_SCL);
 
     // Hardware reset before begin() to ensure clean chip state
     _hw_reset();
