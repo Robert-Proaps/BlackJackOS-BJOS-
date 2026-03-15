@@ -103,6 +103,7 @@ void systemStartup() {
   Serial.println("Powering On-Board Periphreals");
   pinMode(BOARD_POWERON, OUTPUT);
   digitalWrite(BOARD_POWERON, HIGH);
+  delay(200);
 
   //Disable all SPI devices during startup (Active LOW).
   Serial.println("Disabling SPI Devices.");
