@@ -9,9 +9,10 @@
 #include "LVGLDriver.h"
 #include "AppManager.h"
 #include "HomeMenu.h"
-#include "TemplateApp.h"
 #include "TouchDriver.h"
-
+//Apps
+#include "TemplateApp.h"
+#include "PacketBuilder.h"
 
 //ST7789 LCD Controller SPI Command Table
 typedef struct {
@@ -185,8 +186,10 @@ void systemStartup() {
   lv_obj_invalidate(lv_scr_act());
 */
   // Build and launch the home menu
+  //App List
   HomeMenu* home = new HomeMenu();
   home->addTile("Demo",     LV_SYMBOL_PLAY,     []{ AppManager::instance().launch(new TemplateApp()); });
+  home->addTile("Packet Builder",LV_SYMBOL_ENVELOPE, []{AppManager::instance().launch(new PacketBuilder()); });
   // home->addTile("Radio", LV_SYMBOL_WIFI,     []{ AppManager::instance().launch(new RadioApp()); });
   AppManager::instance().setHome(home);
 
