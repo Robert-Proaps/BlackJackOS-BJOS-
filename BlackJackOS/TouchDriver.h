@@ -23,7 +23,7 @@
 #pragma once
 #include <Arduino.h>
 #include <Wire.h>
-#include <TouchDrvGT911.hpp>
+#include <TouchDrvGT911.hpp> //From Sensor Lib by Lewis He
 #include <lvgl.h>
 #include "utilities.h"
 
