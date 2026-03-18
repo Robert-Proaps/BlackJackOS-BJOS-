@@ -4,6 +4,7 @@
 #include <TFT_eSPI.h>
 #include <RadioLib.h>
 #include <lvgl.h>
+#include <Crypto.h>
 #include "utilities.h"
 #include "BJOS_SplashscreenBGR565.h"
 #include "LVGLDriver.h"
@@ -13,6 +14,7 @@
 //Apps
 #include "TemplateApp.h"
 #include "PacketBuilder.h"
+
 
 //ST7789 LCD Controller SPI Command Table
 typedef struct {
