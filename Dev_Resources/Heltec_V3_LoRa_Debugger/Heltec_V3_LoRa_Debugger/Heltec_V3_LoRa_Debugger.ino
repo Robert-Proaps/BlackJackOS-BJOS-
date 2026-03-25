@@ -27,7 +27,7 @@ void setup() {
   }
 
   // Write 0x00 to match packets regardless of sync word
-  radio.setSyncWord(0x00);
+  radio.setSyncWord(0x2B);
 
   Serial.println("LoRa ready — listening for packets...");
 }
