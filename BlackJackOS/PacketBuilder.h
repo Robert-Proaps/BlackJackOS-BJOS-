@@ -104,6 +104,16 @@ private:
             lv_event_code_t code = lv_event_get_code(e);
             if (code == LV_EVENT_CLICKED) {
                 Serial.println("SEND BUTTON PRESSED");
+
+                uint8_t packet[] = {0x01, 0x02, 0x03, 0x04};
+                int state = LoRaRadio.transmit(packet, sizeof(packet));
+
+                if (state == RADIOLIB_ERR_NONE) {
+                    Serial.println("Transmit Success");
+                } else {
+                    Serial.print("Transmit failed, error code: ");
+                    Serial.println(state);
+                }
             }
         }
 };
