@@ -85,6 +85,8 @@ void setBrightness(uint8_t value);
 
 void setup() {
   Serial.begin(115200); //Open A Serial Port
+  while (!Serial) delay(10);   // ← wait for USB CDC to enumerate
+  delay(500);                  // ← extra buffer for terminal to connect
   systemStartup();  //Initialize the System
 }
 
