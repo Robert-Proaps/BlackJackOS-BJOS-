@@ -92,5 +92,5 @@ inline void lvgl_driver_init(TFT_eSPI& tft) {
     ESP_ERROR_CHECK(esp_timer_create(&tick_args, &tick_timer));
     ESP_ERROR_CHECK(esp_timer_start_periodic(tick_timer, 1000)); // 1000 µs = 1 ms
 
-    Serial.println("LVGL 9 driver initialized.");
+    Serial.println("[GFX] LVGL 9 driver initialized.");
 }

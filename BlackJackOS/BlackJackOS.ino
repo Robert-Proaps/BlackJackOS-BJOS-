@@ -5,6 +5,7 @@
 #include <RadioLib.h>
 #include <lvgl.h>
 #include <Crypto.h>
+#include <TinyGPSPlus.h>
 #include "utilities.h"
 #include "BJOS_SplashscreenBGR565.h"
 #include "LVGLDriver.h"
@@ -79,9 +80,27 @@ const LoRa_Config MESHCORE_US = {
 SPIClass hspi(HSPI);
 SX1262 LoRaRadio = new Module(RADIO_CS_PIN, RADIO_DIO1_PIN, RADIO_RST_PIN, RADIO_BUSY_PIN, hspi, SPISettings(2000000, MSBFIRST, SPI_MODE0)); //LoRa Radio Objuect
 
+//GPS Setup
+#define GPS_SERIAL Serial2
+#define GPS_BAUD_L76K 9600 //Quectel L76K default
+#define GPS_BAUD_UBLOX 38400 //Ublox M10Q Default
+#define GPS_DETECT_TIMEOUT 3000
+
+TinyGPSPlus gps;
+
+static bool gpsReady = false;
+
+bool gpsAutoDetect();
+bool gpsWaitForNMEA(uint32_t timeoutMs);
+//void printGPSData();
+
 //Forward Declarations
 void systemStartup();
 void setBrightness(uint8_t value);
+
+bool gpsAutoDetect();
+bool gpsWaitForNMEA(uint32_t timeoutMs);
+void printGPSData();
 
 void setup() {
   Serial.begin(115200); //Open A Serial Port
@@ -101,16 +120,16 @@ void loop() {
 //Startup Procedure
 void systemStartup() {
   //This function should run once in the setup function.
-  Serial.println("System Starting Up");
+  Serial.println("[SYS] System Starting Up");
 
   //Turn on the power rails to all board perephreals, including LCD, Touchscreen, SD Card, LoRa, and Trackball.
-  Serial.println("Powering On-Board Periphreals");
+  Serial.println("[PWR] Powering On-Board Periphreals");
   pinMode(BOARD_POWERON, OUTPUT);
   digitalWrite(BOARD_POWERON, HIGH);
   delay(200);
 
   //Disable all SPI devices during startup (Active LOW).
-  Serial.println("Disabling SPI Devices.");
+  Serial.println("[SPI] Disabling SPI Devices.");
   pinMode(BOARD_SDCARD_CS, OUTPUT);
   pinMode(RADIO_CS_PIN, OUTPUT);
   pinMode(BOARD_TFT_CS, OUTPUT);
@@ -120,12 +139,12 @@ void systemStartup() {
   digitalWrite(BOARD_TFT_CS, HIGH);
 
   //Define SPI Bus.
-  Serial.println("Defining SPI Bus.");
+  Serial.println("[SPI] Defining SPI Bus.");
   pinMode(BOARD_SPI_MISO, INPUT_PULLUP);
   hspi.begin(BOARD_SPI_SCK, BOARD_SPI_MISO, BOARD_SPI_MOSI);
 
   //Initialize the screen and turn on the backlight.
-  Serial.println("Screen Initializing.");
+  Serial.println("[GFX] Screen Initializing.");
   tft.begin();
 
 #if 0
@@ -142,7 +161,7 @@ void systemStartup() {
 #endif
 
   tft.setRotation(1);
-  Serial.println("TFT begun");
+  Serial.println("[GFX] TFT begun");
 
   pinMode(BOARD_BL_PIN, OUTPUT);  //Turn on the LCD backlight at brightness 8.
   setBrightness(8);
@@ -160,16 +179,16 @@ void systemStartup() {
   //Setup LoRa Radio
   int radioState = LoRaRadio.begin(MESHCORE_US.frequency, MESHCORE_US.bandwidth, MESHCORE_US.sf, MESHCORE_US.cr, MESHCORE_US.syncWord, MESHCORE_US.txPower, MESHCORE_US.preambleLen);
   if (radioState != RADIOLIB_ERR_NONE) {
-    Serial.print("Radio initialization failure: ");
+    Serial.print("[RADIO] Radio initialization failure: ");
     Serial.println(radioState);
     Serial.println("Halting");
     while(true);
   }
 
-  Serial.println("Radio Initialized.");
+  Serial.println("[RADIO] Radio Initialized.");
   
   //Initialize LVGL
-  Serial.println("Initializing LVGL");
+  Serial.println("[GFX] Initializing LVGL");
   tft.fillScreen(TFT_BLACK);          // reset GRAM & address pointer
   tft.setAddrWindow(0, 0, tft.width(), tft.height()); // explicit full-screen window
   lvgl_driver_init(tft);
@@ -190,6 +209,21 @@ void systemStartup() {
   lv_obj_center(label);
   lv_obj_invalidate(lv_scr_act());
 */
+
+  //Initialize the GPS
+  Serial.println("[GPS] Initializing GPS");
+
+  Serial.println("[GPS]  Attempting autodetect …");
+    if (gpsAutoDetect()) {
+        Serial.println("[GPS]  Module detected and ready");
+        gpsReady = true;
+    } else {
+        // Hard fallback — uncomment whichever matches your module:
+        Serial.println("[GPS]  Autodetect failed — falling back to 9600 (L76K)");
+        GPS_SERIAL.begin(GPS_BAUD_L76K, SERIAL_8N1, BOARD_GPS_RX_PIN, BOARD_GPS_TX_PIN);
+        gpsReady = true;   // optimistic; fix acquisition will confirm
+    }
+
   // Build and launch the home menu
   //App List
   HomeMenu* home = new HomeMenu();
@@ -198,7 +232,7 @@ void systemStartup() {
   // home->addTile("Radio", LV_SYMBOL_WIFI,     []{ AppManager::instance().launch(new RadioApp()); });
   AppManager::instance().setHome(home);
 
-  Serial.println("Startup Complete!");
+  Serial.println("[BOOT] Startup Complete!");
 }
 
 // LCD Backlight Control
@@ -227,3 +261,42 @@ void setBrightness(uint8_t value) {
   }
   level = value;
 }
+
+//GPS Autodetect
+//Tries L76K baud first, then u-blox baud.
+//Returns True if valid NEMA was observed within GPS_Detect_Timeout
+bool gpsAutoDetect() {
+  const uint32_t bauds[] = { GPS_BAUD_L76K, GPS_BAUD_UBLOX };
+  const char*    labels[] = { "9600 (L76K)", "38400 (u-blox M10Q)" };
+
+  for (int i = 0; i < 2; i++) {
+      Serial.printf("[GPS]    Trying %s … ", labels[i]);
+      GPS_SERIAL.begin(bauds[i], SERIAL_8N1, BOARD_GPS_RX_PIN, BOARD_GPS_TX_PIN);
+      delay(100);
+
+      if (gpsWaitForNMEA(GPS_DETECT_TIMEOUT)) {
+          Serial.println("OK");
+          return true;
+      }
+      Serial.println("no response");
+      GPS_SERIAL.end();
+      delay(50);
+    }
+    return false;
+}
+
+// gpsWaitForNMEA()
+//   Watches the serial stream for a valid NMEA sentence (starts with '$').
+//   Returns true if one is observed before timeoutMs elapses.
+// =============================================================================
+bool gpsWaitForNMEA(uint32_t timeoutMs) {
+    uint32_t start = millis();
+    while (millis() - start < timeoutMs) {
+        while (GPS_SERIAL.available()) {
+            char c = GPS_SERIAL.read();
+            if (c == '$') return true;   // NMEA sentence start character
+        }
+    }
+    return false;
+}
+
