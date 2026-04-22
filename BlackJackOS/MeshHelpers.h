@@ -1,6 +1,7 @@
 /*This header file contains helpers and definitions pertaining to the meshcore packet structure, and protocol handeling.
 * The meshcore format uses little-endian notation, with bit-0 being the right-most and bit-7 being the leftmost.
 */
+#pragma once
 
 //Header Contents
 //A V1 Meshcore header consists of 8 bits, with 0-1 representing route type, 2-5 representing payload type, and 6-7 representing payload version.
@@ -82,4 +83,7 @@ enum pathHashSize : uint8_t {
 
 //Payload, maximum of 184 bytes defined by MAX_PACKET_PAYLOAD.
 uint8_t MAX_PACKET_PAYLOAD = 184;
+
+//Example packet.
+// 0b[PAYLOAD]00001000010000001000
 
