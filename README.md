@@ -4,7 +4,10 @@
 Blackjack-OS is a Free and Open Source Portable Meshcore Toolbox and Platform for the LilyGo T-Deck and T-Deck Plus.
 
 ### An Acknowledgment
-This project would not be possible without the great work done by Andy Kirby in the creation of [Meshcore](https://meshcore.co.uk/). If you like this project please consider supporting his work.
+This project would not be possible without the great work done by the Meshcore developers in the creation of [Meshcore](https://meshcore.io). If you like this project please consider supporting their work.
+
+### AI Usage Disclaimer ✨
+Some AI Assisted coding tools were used in a manner limited to boiler-plate structure generation, batch refactoring/reformatting, and exploratory ui development. AI Tools were not used in the implementation of the meshcore standard, and encryption is handeled by readily available libraries. The LLMs used in development include Claude by Anthropic, and Copilot by Microsoft. While all firmware is tested on hardware before being commited to the repository, as the license states it is provided as-is with no warrenty.
 
 ## Information for Developers
 
