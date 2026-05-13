@@ -20,6 +20,7 @@
 #include <Arduino.h>
 #include <lvgl.h>
 #include <RadioLib.h>
+#include "MeshHelpers.h"
 
 // ── Forward-declare the radio object from BlackJackOS.ino ─────────────────────
 extern SX1262 LoRaRadio;
@@ -103,6 +104,38 @@ private:
     static void send_btn_event(lv_event_t * e) {    //Runs when the send button is pressed.
             lv_event_code_t code = lv_event_get_code(e);
             if (code == LV_EVENT_CLICKED) {
+                //HERE IS THE STUFF THAT HAPPENS WHEN YOU PRESS THE SEND BUTTON
+
+                //Build out the packet header, this struct is defined in MeshHelpers.h
+                packetHeader header = {0};
+                header.route = FLOOD;
+                header.payloadType = TEXT_MSG;
+                header.payloadVersion = V1;
+
+                Serial.println(header.route, HEX);
+                Serial.println(header.payloadType, HEX);
+                Serial.println(header.payloadVersion, HEX);
+
+                bool headerArray[8] = {0};  //Empty Header Array
+                uint8_t routeArray[2]; //Empty 2 bit array to store LE binary form of route value.
+                bitUnpackerToLE(header.route, 2, routeArray);
+                memcpy(headerArray, routeArray, 2 * sizeof(uint8_t));  //Copy the contents of route array to the first two bits of header array.
+
+                uint8_t payloadTypeArray [4] = {0};
+                bitUnpackerToLE(header.payloadType, 4, payloadTypeArray);
+                memcpy(headerArray + 2, payloadTypeArray, 4 * sizeof(uint8_t));
+
+                uint8_t versionArray [2] = {0};
+                bitUnpackerToLE(header.payloadVersion, 2, versionArray);
+                memcpy(headerArray + 6, versionArray, 2 * sizeof(uint8_t));
+
+                // Header Array should now be populated, lets print it.
+                for (int i = 0; i < 8; i++) {
+                    Serial.print(headerArray[i]);
+                    if (i < 7) Serial.print(" ");
+                }             
+                Serial.println();
+
                 Serial.println("SEND BUTTON PRESSED");
 
                 uint8_t packet[] = {0x01, 0x02, 0x03, 0x04};

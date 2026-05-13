@@ -229,7 +229,6 @@ void systemStartup() {
   HomeMenu* home = new HomeMenu();
   home->addTile("Demo",     LV_SYMBOL_PLAY,     []{ AppManager::instance().launch(new TemplateApp()); });
   home->addTile("Packet Builder",LV_SYMBOL_ENVELOPE, []{AppManager::instance().launch(new PacketBuilder()); });
-  // home->addTile("Radio", LV_SYMBOL_WIFI,     []{ AppManager::instance().launch(new RadioApp()); });
   AppManager::instance().setHome(home);
 
   Serial.println("[BOOT] Startup Complete!");

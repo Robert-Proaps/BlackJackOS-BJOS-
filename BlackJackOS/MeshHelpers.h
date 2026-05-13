@@ -60,7 +60,7 @@ struct packetHeader {
 
 //Transport Codes ---------------------------- Not Implemented Yet :)
 
-MAX_PATH_SIZE = uint8_t 0b1111; //(64) //Maximum allowable number of hops.
+uint8_t MAX_PATH_SIZE = 0b1111; //(64) //Maximum allowable number of hops.
 
 // Path Length 1- Byte, Bits 0-5 store path hash count / hop count e.g 0-63, bits 6-7 store path hash size minus 1
 
@@ -86,4 +86,11 @@ uint8_t MAX_PACKET_PAYLOAD = 184;
 
 //Example packet.
 // 0b[PAYLOAD]00001000010000001000
+
+//The bit unpacker is converts an integer value such as 2 to an array of binary such as [1 0] note, the array will be in little endian.
+void bitUnpackerToLE(uint8_t val, uint8_t numBits, uint8_t* buf) {
+  for (int i = 0; i < numBits; i++) {
+    *buf++ = (val >> i) & 0x01;
+  }
+}
 
