@@ -94,3 +94,15 @@ void bitUnpackerToLE(uint8_t val, uint8_t numBits, uint8_t* buf) {
   }
 }
 
+//This function in cooperation with bitUnpackerToLE takes the header data specified and converts it to an array of binary to later be sent to the radio.
+void buildHeaderArray(packetHeader header, uint8_t headerArray[8]) {
+    //Initialize the output array with all 0's.
+    memset(headerArray, 0, 8);
+    //Unpack the route bits to the header array.
+    bitUnpackerToLE(header.route, 2, &headerArray[0]);
+    //Unpack the type bits to the header array.
+    bitUnpackerToLE(header.payloadType, 4, &headerArray[2]);
+    //Unpack the version bits to the header array.
+    bitUnpackerToLE(header.payloadVersion, 2, &headerArray[6]);
+}
+

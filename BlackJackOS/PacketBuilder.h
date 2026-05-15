@@ -112,22 +112,8 @@ private:
                 header.payloadType = TEXT_MSG;
                 header.payloadVersion = V1;
 
-                Serial.println(header.route, HEX);
-                Serial.println(header.payloadType, HEX);
-                Serial.println(header.payloadVersion, HEX);
-
-                bool headerArray[8] = {0};  //Empty Header Array
-                uint8_t routeArray[2]; //Empty 2 bit array to store LE binary form of route value.
-                bitUnpackerToLE(header.route, 2, routeArray);
-                memcpy(headerArray, routeArray, 2 * sizeof(uint8_t));  //Copy the contents of route array to the first two bits of header array.
-
-                uint8_t payloadTypeArray [4] = {0};
-                bitUnpackerToLE(header.payloadType, 4, payloadTypeArray);
-                memcpy(headerArray + 2, payloadTypeArray, 4 * sizeof(uint8_t));
-
-                uint8_t versionArray [2] = {0};
-                bitUnpackerToLE(header.payloadVersion, 2, versionArray);
-                memcpy(headerArray + 6, versionArray, 2 * sizeof(uint8_t));
+                uint8_t headerArray[8]; //This array will hold the binary of the header.
+                buildHeaderArray(header, headerArray);  //This will populate the header array based on our selections above.
 
                 // Header Array should now be populated, lets print it.
                 for (int i = 0; i < 8; i++) {
