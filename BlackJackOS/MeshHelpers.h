@@ -106,3 +106,11 @@ void buildHeaderArray(packetHeader header, uint8_t headerArray[8]) {
     bitUnpackerToLE(header.payloadVersion, 2, &headerArray[6]);
 }
 
+//TEMPORARY TESTING FUNCTION
+uint8_t packHeaderArray(uint8_t headerArray[8]) {
+    uint8_t packed = 0;
+    for (int i = 0; i < 8; i++) {
+        packed |= (headerArray[i] & 0x01) << i;
+    }
+    return packed;
+}

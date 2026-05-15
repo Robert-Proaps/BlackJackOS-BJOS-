@@ -112,6 +112,12 @@ private:
                 header.payloadType = TEXT_MSG;
                 header.payloadVersion = V1;
 
+                //Check if we will need transport codes.
+                if (header.route == FLOOD || header.route == DIRECT) {  //If transport codes are to be used, we need to modify our header population as it is a different size, but im gonna skip transport support for now.
+                    uint8_t headerArray[8]; //This array will hold the binary of the header.
+                    buildHeaderArray(header, headerArray);  //This will populate the header array based on our selections above.
+                }
+
                 uint8_t headerArray[8]; //This array will hold the binary of the header.
                 buildHeaderArray(header, headerArray);  //This will populate the header array based on our selections above.
 
@@ -124,8 +130,8 @@ private:
 
                 Serial.println("SEND BUTTON PRESSED");
 
-                uint8_t packet[] = {0x01, 0x02, 0x03, 0x04};
-                int state = LoRaRadio.transmit(packet, sizeof(packet));
+                uint8_t packedHeaderArray = packHeaderArray(headerArray);
+                int state = LoRaRadio.transmit(&packedHeaderArray, sizeof(packedHeaderArray));  //TRANSMIT
 
                 if (state == RADIOLIB_ERR_NONE) {
                     Serial.println("Transmit Success");
